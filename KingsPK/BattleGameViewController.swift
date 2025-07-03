@@ -1,10 +1,3 @@
-//
-//  KingsObject.swift
-//  KingsPK
-//
-//  Created by ByteDance on 2025/7/3.
-//
-
 import UIKit
 
 class BattleGameViewController: UIViewController {
@@ -35,9 +28,11 @@ class BattleGameViewController: UIViewController {
     private var countdownSeconds = 0
     
     // MARK: - Constants
-    private let playerSize: CGFloat = 50
+    private let playerSize: CGFloat = 100
     private let healthBarHeight: CGFloat = 20
-    private let cooldownDuration = 3 // 3秒冷却时间
+    private let cooldownDuration = 30 // 冷却时间
+    
+    let skillPanelVC: MyUIKitViewController = MyUIKitViewController()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -89,6 +84,28 @@ class BattleGameViewController: UIViewController {
          redPlayer, bluePlayer, actionButton, countdownLabel, skillPanel].forEach {
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: .skillTriggered,
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let userInfo = notification.userInfo {
+                print("Skill triggered: \(userInfo)")
+                // Other developers can implement their character animations here
+                self.hideSkillPanel()
+                let name: String = userInfo["skillId"] as? String ?? ""
+                switch name {
+                case "fireball":
+                    self.performFireAttack()
+                default:
+                    self.performBasicAttack()
+                }
+                
+                // 开始冷却
+                self.startCooldown()
+            }
         }
     }
     
@@ -154,12 +171,12 @@ class BattleGameViewController: UIViewController {
             
             // 玩家角色约束
             redPlayer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-            redPlayer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100),
+            redPlayer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -200),
             redPlayer.widthAnchor.constraint(equalToConstant: playerSize),
             redPlayer.heightAnchor.constraint(equalToConstant: playerSize),
             
             bluePlayer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
-            bluePlayer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -100),
+            bluePlayer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -200),
             bluePlayer.widthAnchor.constraint(equalToConstant: playerSize),
             bluePlayer.heightAnchor.constraint(equalToConstant: playerSize),
             
@@ -217,8 +234,7 @@ class BattleGameViewController: UIViewController {
     // MARK: - Actions
     @objc private func actionButtonTapped() {
         if !isOnCooldown {
-//            showSkillPanel()
-            present(MyUIKitViewController(),animated: true)
+            present(self.skillPanelVC, animated: true)
         }
     }
     
@@ -257,16 +273,33 @@ class BattleGameViewController: UIViewController {
     }
     
     private func hideSkillPanel() {
-        UIView.animate(withDuration: 0.2) {
-            self.skillPanel.alpha = 0
-            self.skillPanel.transform = CGAffineTransform(translationX: 0, y: 100)
-        } completion: { _ in
-            self.skillPanel.isHidden = true
-        }
+//        UIView.animate(withDuration: 0.2) {
+//            self.skillPanel.alpha = 0
+//            self.skillPanel.transform = CGAffineTransform(translationX: 0, y: 100)
+//        } completion: { _ in
+//            self.skillPanel.isHidden = true
+//        }
+        self.skillPanelVC.dismiss(animated: true)
     }
     
     private func performAttack(skillType: String) {
-        // 创建攻击特效
+        switch skillType {
+        case "攻击":
+            performBasicAttack()
+        case "闪电攻击":
+            performLightningAttack()
+        case "火焰攻击":
+            performFireAttack()
+        default:
+            performBasicAttack()
+        }
+        
+        // 开始冷却
+        startCooldown()
+    }
+    
+    private func performBasicAttack() {
+        // 创建基础攻击特效
         let attackEffect = UIView()
         attackEffect.backgroundColor = .systemRed
         attackEffect.layer.cornerRadius = 25
@@ -276,54 +309,261 @@ class BattleGameViewController: UIViewController {
         attackEffect.translatesAutoresizingMaskIntoConstraints = false
         
         // 初始位置和大小
-        NSLayoutConstraint.activate([
-            attackEffect.centerXAnchor.constraint(equalTo: redPlayer.centerXAnchor),
-            attackEffect.centerYAnchor.constraint(equalTo: redPlayer.centerYAnchor),
-            attackEffect.widthAnchor.constraint(equalToConstant: 50),
-            attackEffect.heightAnchor.constraint(equalToConstant: 50)
-        ])
+//        NSLayoutConstraint.activate([
+//            attackEffect.centerXAnchor.constraint(equalTo: redPlayer.centerXAnchor),
+//            attackEffect.centerYAnchor.constraint(equalTo: redPlayer.centerYAnchor),
+//            attackEffect.widthAnchor.constraint(equalToConstant: 50),
+//            attackEffect.heightAnchor.constraint(equalToConstant: 50)
+//        ])
+        attackEffect.frame = CGRect(
+            x: redPlayer.frame.minX,
+            y: redPlayer.frame.minY,
+            width: 100,
+            height: 100
+        )
         
         view.layoutIfNeeded()
         
         // 动画效果
         UIView.animate(withDuration: 0.8, animations: {
-            // 移除原约束
-            attackEffect.removeFromSuperview()
-            self.view.addSubview(attackEffect)
-            attackEffect.translatesAutoresizingMaskIntoConstraints = false
-            
-            // 设置新的约束（移动到蓝色玩家位置并变大）
-            NSLayoutConstraint.activate([
-                attackEffect.centerXAnchor.constraint(equalTo: self.bluePlayer.centerXAnchor),
-                attackEffect.centerYAnchor.constraint(equalTo: self.bluePlayer.centerYAnchor),
-                attackEffect.widthAnchor.constraint(equalToConstant: 80),
-                attackEffect.heightAnchor.constraint(equalToConstant: 80)
-            ])
-            
-            self.view.layoutIfNeeded()
+            attackEffect.frame = CGRect(
+                x: attackEffect.frame.midX + 300,
+                y: attackEffect.frame.minY,
+                width: 80,
+                height: 80
+            )
         }) { _ in
-            // 碰撞效果
-            self.createCollisionEffect()
+            self.createCollisionEffect(color: .systemYellow)
             attackEffect.removeFromSuperview()
+            self.dealDamage()
+        }
+    }
+    
+    private func performFireAttack() {
+        // 创建火焰攻击特效
+        let fireContainer = UIView()
+        fireContainer.frame = CGRect(
+            x: redPlayer.frame.midX - 25,
+            y: redPlayer.frame.midY - 25,
+            width: 50,
+            height: 50
+        )
+        view.addSubview(fireContainer)
+        
+        // 创建多个火焰粒子
+        for i in 0..<8 {
+            let flame = UIView()
+            flame.backgroundColor = i % 2 == 0 ? .systemRed : .systemOrange
+            flame.layer.cornerRadius = 8
+            flame.frame = CGRect(x: 20, y: 20, width: 16, height: 16)
+            fireContainer.addSubview(flame)
             
-            // 扣血
-            self.blueHealth = max(0, self.blueHealth - 0.1)
-            self.updateHealthBars()
+            // 火焰粒子动画
+            UIView.animate(withDuration: 0.6, delay: Double(i) * 0.05, options: [.repeat, .autoreverse], animations: {
+                flame.transform = CGAffineTransform(scaleX: 1.5, y: 1.8)
+                flame.alpha = 0.7
+            })
+        }
+        
+        // 火焰轨迹动画
+        UIView.animate(withDuration: 1.0, delay: 0.3, options: .curveEaseInOut, animations: {
+            fireContainer.frame = CGRect(
+                x: self.bluePlayer.frame.midX - 40,
+                y: self.bluePlayer.frame.midY - 40,
+                width: 80,
+                height: 80
+            )
+            fireContainer.transform = CGAffineTransform(rotationAngle: .pi * 2)
+        }) { _ in
+            self.createFireExplosion()
+            fireContainer.removeFromSuperview()
+            self.dealDamage()
+        }
+    }
+    
+    private func performLightningAttack() {
+        // 创建闪电路径
+        let lightningPath = UIBezierPath()
+        let startPoint = CGPoint(x: redPlayer.frame.midX, y: redPlayer.frame.midY)
+        let endPoint = CGPoint(x: bluePlayer.frame.midX, y: bluePlayer.frame.midY)
+        
+        lightningPath.move(to: startPoint)
+        
+        // 创建锯齿状闪电路径
+        let segments = 8
+        for i in 1..<segments {
+            let progress = CGFloat(i) / CGFloat(segments)
+            let x = startPoint.x + (endPoint.x - startPoint.x) * progress
+            let y = startPoint.y + (endPoint.y - startPoint.y) * progress
             
-            // 检查游戏结束
-            if self.blueHealth <= 0 {
-                self.gameOver(winner: "红色玩家")
+            // 添加随机偏移创造闪电效果
+            let offset = (i % 2 == 0 ? 20 : -20) * sin(progress * .pi * 2)
+            lightningPath.addLine(to: CGPoint(x: x, y: y + offset))
+        }
+        lightningPath.addLine(to: endPoint)
+        
+        // 创建闪电图层
+        let lightningLayer = CAShapeLayer()
+        lightningLayer.path = lightningPath.cgPath
+        lightningLayer.strokeColor = UIColor.systemBlue.cgColor
+        lightningLayer.lineWidth = 4
+        lightningLayer.fillColor = UIColor.clear.cgColor
+        lightningLayer.shadowColor = UIColor.cyan.cgColor
+        lightningLayer.shadowOpacity = 0.8
+        lightningLayer.shadowRadius = 4
+        
+        view.layer.addSublayer(lightningLayer)
+        
+        // 闪电动画
+        let strokeAnimation = CABasicAnimation(keyPath: "strokeEnd")
+        strokeAnimation.fromValue = 0
+        strokeAnimation.toValue = 1
+        strokeAnimation.duration = 0.3
+        
+        let glowAnimation = CABasicAnimation(keyPath: "shadowRadius")
+        glowAnimation.fromValue = 4
+        glowAnimation.toValue = 12
+        glowAnimation.duration = 0.2
+        glowAnimation.autoreverses = true
+        glowAnimation.repeatCount = 3
+        
+        lightningLayer.add(strokeAnimation, forKey: "stroke")
+        lightningLayer.add(glowAnimation, forKey: "glow")
+        
+        // 添加电击效果
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.createElectricShock()
+            lightningLayer.removeFromSuperlayer()
+            self.dealDamage()
+        }
+    }
+    
+    private func createFireExplosion() {
+        // 创建火焰爆炸效果
+        let explosionView = UIView()
+        explosionView.frame = CGRect(
+            x: bluePlayer.frame.midX - 60,
+            y: bluePlayer.frame.midY - 60,
+            width: 120,
+            height: 120
+        )
+        view.addSubview(explosionView)
+        
+        // 创建火焰爆炸粒子
+        for i in 0..<12 {
+            let particle = UIView()
+            particle.backgroundColor = i % 3 == 0 ? .systemRed : (i % 3 == 1 ? .systemOrange : .systemYellow)
+            particle.layer.cornerRadius = 6
+            particle.frame = CGRect(x: 54, y: 54, width: 12, height: 12)
+            explosionView.addSubview(particle)
+            
+            let angle = CGFloat(i) * (.pi * 2 / 12)
+            let distance: CGFloat = 50
+            
+            UIView.animate(withDuration: 0.5, delay: 0, options: .curveEaseOut, animations: {
+                particle.center = CGPoint(
+                    x: 60 + cos(angle) * distance,
+                    y: 60 + sin(angle) * distance
+                )
+                particle.alpha = 0
+                particle.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+            })
+        }
+        
+        // 核心爆炸效果
+        let coreExplosion = UIView()
+        coreExplosion.backgroundColor = .systemYellow
+        coreExplosion.layer.cornerRadius = 15
+        coreExplosion.frame = CGRect(x: 45, y: 45, width: 30, height: 30)
+        explosionView.addSubview(coreExplosion)
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            coreExplosion.transform = CGAffineTransform(scaleX: 2, y: 2)
+            coreExplosion.alpha = 0
+        }) { _ in
+            explosionView.removeFromSuperview()
+        }
+        
+        // 震动效果
+        createShakeEffect(for: bluePlayer)
+    }
+    
+    private func createElectricShock() {
+        // 创建电击效果
+        let shockView = UIView()
+        shockView.frame = bluePlayer.frame
+        shockView.layer.cornerRadius = shockView.frame.width / 2
+        shockView.layer.borderWidth = 3
+        shockView.layer.borderColor = UIColor.systemBlue.cgColor
+        shockView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.3)
+        view.addSubview(shockView)
+        
+        // 电击动画
+        UIView.animate(withDuration: 0.1, animations: {
+            shockView.backgroundColor = UIColor.cyan.withAlphaComponent(0.8)
+        }) { _ in
+            UIView.animate(withDuration: 0.1, animations: {
+                shockView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.3)
+            }) { _ in
+                UIView.animate(withDuration: 0.1, animations: {
+                    shockView.backgroundColor = UIColor.cyan.withAlphaComponent(0.8)
+                }) { _ in
+                    shockView.removeFromSuperview()
+                }
             }
         }
         
-        // 开始冷却
-        startCooldown()
+        // 电击粒子效果
+        for i in 0..<6 {
+            let spark = UIView()
+            spark.backgroundColor = .cyan
+            spark.layer.cornerRadius = 2
+            spark.frame = CGRect(x: bluePlayer.frame.midX - 2, y: bluePlayer.frame.midY - 2, width: 4, height: 4)
+            view.addSubview(spark)
+            
+            let angle = CGFloat(i) * (.pi * 2 / 6)
+            let distance: CGFloat = 40
+            
+            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
+                spark.center = CGPoint(
+                    x: self.bluePlayer.frame.midX + cos(angle) * distance,
+                    y: self.bluePlayer.frame.midY + sin(angle) * distance
+                )
+                spark.alpha = 0
+            }) { _ in
+                spark.removeFromSuperview()
+            }
+        }
+        
+        // 震动效果
+        createShakeEffect(for: bluePlayer)
     }
     
-    private func createCollisionEffect() {
+    private func createShakeEffect(for view: UIView) {
+        let shake = CABasicAnimation(keyPath: "position")
+        shake.duration = 0.1
+        shake.repeatCount = 3
+        shake.autoreverses = true
+        shake.fromValue = NSValue(cgPoint: CGPoint(x: view.center.x - 5, y: view.center.y))
+        shake.toValue = NSValue(cgPoint: CGPoint(x: view.center.x + 5, y: view.center.y))
+        view.layer.add(shake, forKey: "shake")
+    }
+    
+    private func dealDamage() {
+        // 扣血
+        blueHealth = max(0, blueHealth - 0.1)
+        updateHealthBars()
+        
+        // 检查游戏结束
+        if blueHealth <= 0 {
+            gameOver(winner: "红色玩家")
+        }
+    }
+    
+    private func createCollisionEffect(color: UIColor = .systemYellow) {
         // 创建碰撞特效
         let collisionEffect = UIView()
-        collisionEffect.backgroundColor = .systemYellow
+        collisionEffect.backgroundColor = color
         collisionEffect.layer.cornerRadius = 40
         collisionEffect.alpha = 0.9
         
@@ -348,14 +588,7 @@ class BattleGameViewController: UIViewController {
         }
         
         // 震动效果
-        bluePlayer.transform = CGAffineTransform(translationX: -5, y: 0)
-        UIView.animate(withDuration: 0.1, animations: {
-            self.bluePlayer.transform = CGAffineTransform(translationX: 5, y: 0)
-        }) { _ in
-            UIView.animate(withDuration: 0.1) {
-                self.bluePlayer.transform = .identity
-            }
-        }
+        createShakeEffect(for: bluePlayer)
     }
     
     private func updateHealthBars() {
@@ -381,6 +614,27 @@ class BattleGameViewController: UIViewController {
         cooldownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             self.countdownSeconds -= 1
             self.updateCountdownDisplay()
+            
+            if self.countdownSeconds == 25 {
+                self.countdownSeconds = 5
+                
+                let toastLabel = UILabel()
+                toastLabel.text = "点赞达到100，冷却时间-20s！！！"
+                toastLabel.font = .systemFont(ofSize: 30, weight: .medium)
+                toastLabel.textColor = .systemRed
+                toastLabel.sizeToFit()
+                self.view.addSubview(toastLabel)
+                
+                NSLayoutConstraint.activate([
+                    toastLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+                    toastLabel.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 100),
+                ])
+                self.view.layoutIfNeeded()
+                
+                UIView.animate(withDuration: 0.3, delay: 5) {
+                    toastLabel.
+                }
+            }
             
             if self.countdownSeconds <= 0 {
                 self.endCooldown()
