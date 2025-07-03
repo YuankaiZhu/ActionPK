@@ -217,7 +217,8 @@ class BattleGameViewController: UIViewController {
     // MARK: - Actions
     @objc private func actionButtonTapped() {
         if !isOnCooldown {
-            showSkillPanel()
+//            showSkillPanel()
+            present(MyUIKitViewController(),animated: true)
         }
     }
     
