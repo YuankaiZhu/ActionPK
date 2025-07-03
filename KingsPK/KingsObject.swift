@@ -217,8 +217,17 @@ class BattleGameViewController: UIViewController {
     // MARK: - Actions
     @objc private func actionButtonTapped() {
         if !isOnCooldown {
-//            showSkillPanel()
-            present(MyUIKitViewController(),animated: true)
+//            let pkControlPanelController = PKControlPanelController()
+//            if let sheet = pkControlPanelController.sheetPresentationController {
+//                sheet.detents = [.medium()]  // Half screen
+//                sheet.prefersGrabberVisible = true  // Optional: show the grabber
+//            }
+//            pkControlPanelController.modalPresentationStyle = .pageSheet
+//            present(pkControlPanelController,animated: true)
+            let controlPanelVC = PKControlPanelController()
+            controlPanelVC.modalPresentationStyle = .custom
+            controlPanelVC.transitioningDelegate = self
+            present(controlPanelVC, animated: true, completion: nil)
         }
     }
     

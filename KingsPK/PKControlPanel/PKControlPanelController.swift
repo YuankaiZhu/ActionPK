@@ -8,7 +8,7 @@
 import UIKit
 import SwiftUI
 
-class MyUIKitViewController: UIViewController {
+class PKControlPanelController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
