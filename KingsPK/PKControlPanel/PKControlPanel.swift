@@ -292,20 +292,10 @@ struct PKControlPanel: View {
                                 .foregroundColor(.white)
                             
                             Spacer()
-                            
-//                            // Player Selection
-//                            Picker("Player", selection: $selectedPlayer) {
-//                                Text("Player 1").tag(1)
-//                                Text("Player 2").tag(2)
-//                            }
-//                            .pickerStyle(SegmentedPickerStyle())
-//                            .frame(width: 120)
+                        
+                        
                         }
                         .padding(.horizontal)
-                        
-//                        // Character Stats
-//                        StatsDisplay(characterStats: characterStats)
-//                            .padding(.horizontal)
                         
                         // Attack Skills
                         SkillsSection(
@@ -333,22 +323,6 @@ struct PKControlPanel: View {
                             characterStats: characterStats
                         )
                         .padding(.horizontal)
-                        
-//                        // Reset Button
-//                        Button(action: {
-//                            resetCharacterStats()
-//                        }) {
-//                            Text("Reset Character")
-//                                .font(.headline)
-//                                .foregroundColor(.white)
-//                                .frame(maxWidth: .infinity)
-//                                .padding()
-//                                .background(
-//                                    LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing)
-//                                )
-//                                .cornerRadius(12)
-//                        }
-//                        .padding(.horizontal)
                     }
                     .padding(.vertical)
                 }

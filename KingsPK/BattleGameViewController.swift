@@ -234,7 +234,10 @@ class BattleGameViewController: UIViewController {
     // MARK: - Actions
     @objc private func actionButtonTapped() {
         if !isOnCooldown {
-            present(self.skillPanelVC, animated: true)
+            let controlPanelVC = PKControlPanelController()
+            controlPanelVC.modalPresentationStyle = .custom
+            controlPanelVC.transitioningDelegate = self
+            present(controlPanelVC, animated: true, completion: nil)
         }
     }
     
