@@ -32,7 +32,7 @@ class BattleGameViewController: UIViewController {
     private let healthBarHeight: CGFloat = 20
     private let cooldownDuration = 30 // 冷却时间
     
-    let skillPanelVC: MyUIKitViewController = MyUIKitViewController()
+    let skillPanelVC: PKControlPanelController = PKControlPanelController()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -234,10 +234,9 @@ class BattleGameViewController: UIViewController {
     // MARK: - Actions
     @objc private func actionButtonTapped() {
         if !isOnCooldown {
-            let controlPanelVC = PKControlPanelController()
-            controlPanelVC.modalPresentationStyle = .custom
-            controlPanelVC.transitioningDelegate = self
-            present(controlPanelVC, animated: true, completion: nil)
+            self.skillPanelVC.modalPresentationStyle = .custom
+            self.skillPanelVC.transitioningDelegate = self
+            present(self.skillPanelVC, animated: true, completion: nil)
         }
     }
     
@@ -623,19 +622,16 @@ class BattleGameViewController: UIViewController {
                 
                 let toastLabel = UILabel()
                 toastLabel.text = "点赞达到100，冷却时间-20s！！！"
-                toastLabel.font = .systemFont(ofSize: 30, weight: .medium)
+                toastLabel.font = .systemFont(ofSize: 20, weight: .medium)
                 toastLabel.textColor = .systemRed
                 toastLabel.sizeToFit()
                 self.view.addSubview(toastLabel)
                 
-                NSLayoutConstraint.activate([
-                    toastLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-                    toastLabel.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 100),
-                ])
+                toastLabel.frame = CGRect(x: 100, y: 200, width: toastLabel.frame.width, height: toastLabel.frame.height)
                 self.view.layoutIfNeeded()
                 
-                UIView.animate(withDuration: 0.3, delay: 5) {
-                    toastLabel.
+                UIView.animate(withDuration: 0.3, delay: 3) {
+                    toastLabel.alpha = 0
                 }
             }
             
