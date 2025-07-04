@@ -3,6 +3,8 @@ import UIKit
 class BattleGameViewController: UIViewController {
     
     // MARK: - UI Components
+    let backgroundImage = UIImageView()
+    
     private let redHealthBar = UIView()
     private let blueHealthBar = UIView()
     private let redHealthBackground = UIView()
@@ -44,6 +46,11 @@ class BattleGameViewController: UIViewController {
     // MARK: - UI Setup
     private func setupUI() {
         view.backgroundColor = .systemBackground
+        
+        backgroundImage.frame = self.view.bounds
+        backgroundImage.image = UIImage(named: "screen_shot")
+        backgroundImage.contentMode = .scaleAspectFill
+        self.view.addSubview(backgroundImage)
         
         // 设置血条背景
         redHealthBackground.backgroundColor = .systemGray4
