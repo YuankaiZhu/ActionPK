@@ -284,18 +284,6 @@ struct PKControlPanel: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Header
-                        HStack {
-                            Text("PK Control Panel")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            
-                            Spacer()
-                        
-                        
-                        }
-                        .padding(.horizontal)
                         
                         // Attack Skills
                         SkillsSection(
